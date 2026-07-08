@@ -63,11 +63,17 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     const crmRows = mappingService.apply(normalizedRows, mapping!);
 
+    //Todo validate the output and again add all rows in it as provided
+    //Todo - all 4 crm status check
+    //Todo - all 5 data source values check
+    //Todo - Date format
+    //Todo - CRM Notes and ETC.
+
     return res.json({
       success: true,
       mapping,
       rows: crmRows,
-      cacheHit: !!mapping,
+      cacheHit: cacheHit,
     });
   } catch (error: any) {
     return res.status(400).json({
