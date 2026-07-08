@@ -1,4 +1,4 @@
-export type Row = Record<string, string>;
+export type Row = Record<string, unknown>;
 export interface HeaderMapping {
   [header: string]: string;
 }

@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import parseRouter from "./routes/parse.js";
 import { redis } from "./services/cache/redis.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8000;

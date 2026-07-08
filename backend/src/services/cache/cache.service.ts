@@ -3,9 +3,12 @@ import { HeaderMapping } from "../../types/types.js";
 
 export class CacheService {
   async get(key: string): Promise<HeaderMapping | null> {
+    console.log("CacheService.get initiated");
     const value = await redis.get(key);
+    console.log("Cached value:", value);
 
     if (!value) {
+      console.log("couldnot find the value");
       return null;
     }
 
@@ -13,6 +16,8 @@ export class CacheService {
   }
 
   async set(key: string, mapping: HeaderMapping): Promise<void> {
+    console.log("CacheService.set initiated");
+    console.log("Mapping to be stored:", mapping);
     await redis.set(key, JSON.stringify(mapping), {
       EX: 60 * 60 * 24 * 30, // 30 days
     });

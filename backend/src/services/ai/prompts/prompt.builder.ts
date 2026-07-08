@@ -3,6 +3,7 @@ export class PromptBuilder {
     headers: string[],
     sampleRows: Record<string, unknown>[],
   ): string {
+    console.log("PromptBuilder.build initiated");
     return `
 You are an expert CRM data ingestion assistant.
 

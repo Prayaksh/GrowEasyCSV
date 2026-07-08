@@ -4,14 +4,13 @@ import { z } from "zod";
 
 import { AIProvider } from "./provider.interface.js";
 import { PromptBuilder } from "../prompts/prompt.builder.js";
+import { aiConfig } from "../ai.config.js";
 
 const openrouter = createOpenRouter({
-  apiKey: process.env.AI_API_KEY!,
+  apiKey: aiConfig.apiKey,
 });
 
-const model = openrouter.languageModel(
-  process.env.AI_MODEL ?? "openrouter/free",
-);
+const model = openrouter.languageModel(aiConfig.model || "openrouter/free");
 const CRMFieldSchema = z.enum([
   "created_at",
   "name",
@@ -30,27 +29,56 @@ const CRMFieldSchema = z.enum([
   "description",
 ]);
 
-const HeaderMappingSchema = z.record(z.string(), CRMFieldSchema);
+const HeaderMappingArraySchema = z.object({
+  mappings: z.array(
+    z.object({
+      csvHeader: z.string(),
+      crmField: CRMFieldSchema,
+    }),
+  ),
+});
 
 export class FallbackProvider implements AIProvider {
   async inferMapping(
     headers: string[],
     rows: Record<string, unknown>[],
   ): Promise<Record<string, string>> {
+    console.log("FallbackProvider.inferMapping initated");
     const prompt = PromptBuilder.build(headers, rows);
 
     try {
+      console.log({
+        model,
+        prompt,
+        output: Output.object({
+          schema: HeaderMappingArraySchema,
+        }),
+        temperature: aiConfig.temperature,
+        maxRetries: aiConfig.maxRetries,
+        maxOutputTokens: aiConfig.maxTokens,
+        abortSignal: AbortSignal.timeout(aiConfig.timeoutMs),
+      });
       const { output } = await generateText({
         model,
         prompt,
         output: Output.object({
-          schema: HeaderMappingSchema,
+          schema: HeaderMappingArraySchema,
         }),
-        temperature: 0,
+        temperature: aiConfig.temperature,
+        maxRetries: aiConfig.maxRetries,
+        maxOutputTokens: aiConfig.maxTokens,
+        abortSignal: AbortSignal.timeout(aiConfig.timeoutMs),
       });
+      console.log("Generated Text", output);
 
-      return output;
+      const resultRecord: Record<string, string> = {};
+      for (const item of output.mappings) {
+        resultRecord[item.csvHeader] = item.crmField;
+      }
+
+      return resultRecord;
     } catch (error) {
+      console.log("Error while generating text ", error);
       if (error instanceof Error) {
         throw new Error(`Failed to infer header mapping: ${error.message}`);
       }

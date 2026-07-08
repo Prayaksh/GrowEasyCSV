@@ -1,3 +1,7 @@
+import dotenv from "dotenv";
+
+dotenv.config();
+
 export const aiConfig = {
   provider: process.env.AI_PROVIDER!,
   apiKey: process.env.AI_API_KEY!,
