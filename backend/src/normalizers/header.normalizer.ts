@@ -27,11 +27,14 @@ export class HeaderNormalizer {
     });
   }
 
-  private clean(header: string) {
+  private clean(header: string): string {
     return header
       .trim()
       .toLowerCase()
-      .replace(/[_-]+/g, " ")
-      .replace(/\s+/g, " ");
+      .replace(/[()[\]{}]/g, " ")
+      .replace(/[-_/]+/g, " ")
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, " ")
+      .replace(/ /g, "_");
   }
 }
