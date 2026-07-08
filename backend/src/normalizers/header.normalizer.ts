@@ -27,7 +27,7 @@ export class HeaderNormalizer {
     });
   }
 
-  private clean(header: string): string {
+  public clean(header: string): string {
     return header
       .trim()
       .toLowerCase()
@@ -35,6 +35,7 @@ export class HeaderNormalizer {
       .replace(/[-_/]+/g, " ")
       .replace(/[^\w\s]/g, "")
       .replace(/\s+/g, " ")
-      .replace(/ /g, "_");
+      .replace(/ /g, "_")
+      .replace(/^_+|_+$/g, "");
   }
 }

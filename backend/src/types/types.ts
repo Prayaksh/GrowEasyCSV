@@ -4,6 +4,11 @@ export interface HeaderMapping {
   [header: string]: string;
 }
 
+export interface MatchResult {
+  mapping: Record<string, string>;
+  unmatched: string[];
+}
+
 export interface CRMRecord {
   created_at?: string | null;
   name?: string | null;

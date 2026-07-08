@@ -9,6 +9,8 @@ import { AIService } from "../services/ai/ai.service.js";
 import { MappingService } from "../services/mapping.service.js";
 import { CRMValidator } from "../services/validator.service.js";
 import { CRMRecordNormalizer } from "../normalizers/crm.normalizer.js";
+import { HeaderMatcher } from "../services/matcher.service.js";
+import { HeaderLookup } from "../utils/header.lookup.js";
 
 const router = Router();
 
@@ -19,6 +21,8 @@ const aiService = new AIService();
 const mappingService = new MappingService();
 const validator = new CRMValidator();
 const crmNomalizer = new CRMRecordNormalizer();
+const headerLookup = new HeaderLookup();
+const headerMatcher = new HeaderMatcher(headerLookup);
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -47,28 +51,44 @@ router.post("/", upload.single("file"), async (req, res) => {
     }
 
     const headers = Object.keys(normalizedRows[0]);
-    const key = fingerprintService.generate(headers);
 
-    console.log("GET:", key);
-    let mapping = await cacheService.get(key);
+    const { mapping: directMapping, unmatched } = headerMatcher.match(headers);
 
-    let cacheHit = true;
+    let aiMapping: Record<string, string> = {};
+    let cacheHit = false;
 
-    if (!mapping) {
-      console.log("No mapping found");
-      cacheHit = false;
+    if (unmatched.length > 0) {
+      const key = fingerprintService.generate(unmatched);
 
-      mapping = await aiService.inferMapping(
-        headers,
-        normalizedRows.slice(0, 5),
-      );
+      console.log("GET:", key);
 
-      console.log("AI returned:", mapping);
-      console.log("Keys:", Object.keys(mapping));
+      const cached = await cacheService.get(key);
 
-      console.log("SET:", key);
-      await cacheService.set(key, mapping);
+      if (cached) {
+        aiMapping = cached;
+        cacheHit = true;
+      } else {
+        console.log("No mapping found");
+
+        aiMapping = await aiService.inferMapping(
+          unmatched,
+          normalizedRows.slice(0, 5),
+        );
+
+        console.log("AI returned:", aiMapping);
+
+        await cacheService.set(key, aiMapping);
+
+        Object.entries(aiMapping).forEach(([header, target]) => {
+          headerLookup.learn(header, target);
+        });
+      }
     }
+
+    const mapping = {
+      ...directMapping,
+      ...aiMapping,
+    };
 
     const crmRows = mappingService.apply(normalizedRows, mapping!);
 
