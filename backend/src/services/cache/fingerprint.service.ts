@@ -1,14 +1,13 @@
-import crypto from "crypto";
+import { createHash } from "node:crypto";
 
 export class FingerprintService {
-  generate(rows: Record<string, unknown>[]): string {
-    if (rows.length === 0) {
-      return "";
-    }
-    const headers = Object.keys(rows[0])
-      .map((h) => h.trim())
-      .sort();
+  private readonly PREFIX = "crm:mapping:v1";
 
-    return crypto.createHash("sha256").update(headers.join("|")).digest("hex");
+  generate(headers: string[]): string {
+    const fingerprint = createHash("sha256")
+      .update(headers.sort().join("|"))
+      .digest("hex");
+
+    return `${this.PREFIX}:${fingerprint}`;
   }
 }
