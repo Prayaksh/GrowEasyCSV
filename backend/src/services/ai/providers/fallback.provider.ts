@@ -69,6 +69,10 @@ export class FallbackProvider implements AIProvider {
         maxOutputTokens: aiConfig.maxTokens,
         abortSignal: AbortSignal.timeout(aiConfig.timeoutMs),
       });
+
+      if (output.mappings.length === 0) {
+        throw new Error("AI returned an empty mapping.");
+      }
       console.log("Generated Text", output);
 
       const resultRecord: Record<string, string> = {};

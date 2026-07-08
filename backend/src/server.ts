@@ -20,7 +20,7 @@ app.get("/", (_, res) => {
 
 app.use("/parse", parseRouter);
 
-app.get("/redis", async (req, res) => {
+app.get("/redis", async (_, res) => {
   try {
     await redis.set("test_key", "Redis is up and running!", { EX: 10 });
 

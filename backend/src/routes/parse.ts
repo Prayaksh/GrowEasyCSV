@@ -7,6 +7,8 @@ import { CacheService } from "../services/cache/cache.service.js";
 import { FingerprintService } from "../services/cache/fingerprint.service.js";
 import { AIService } from "../services/ai/ai.service.js";
 import { MappingService } from "../services/mapping.service.js";
+import { CRMValidator } from "../services/validator.service.js";
+import { CRMRecordNormalizer } from "../normalizers/crm.normalizer.js";
 
 const router = Router();
 
@@ -15,6 +17,8 @@ const cacheService = new CacheService();
 const fingerprintService = new FingerprintService();
 const aiService = new AIService();
 const mappingService = new MappingService();
+const validator = new CRMValidator();
+const crmNomalizer = new CRMRecordNormalizer();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -45,6 +49,7 @@ router.post("/", upload.single("file"), async (req, res) => {
     const headers = Object.keys(normalizedRows[0]);
     const key = fingerprintService.generate(headers);
 
+    console.log("GET:", key);
     let mapping = await cacheService.get(key);
 
     let cacheHit = true;
@@ -58,21 +63,23 @@ router.post("/", upload.single("file"), async (req, res) => {
         normalizedRows.slice(0, 5),
       );
 
+      console.log("AI returned:", mapping);
+      console.log("Keys:", Object.keys(mapping));
+
+      console.log("SET:", key);
       await cacheService.set(key, mapping);
     }
 
     const crmRows = mappingService.apply(normalizedRows, mapping!);
 
-    //Todo validate the output and again add all rows in it as provided
-    //Todo - all 4 crm status check
-    //Todo - all 5 data source values check
-    //Todo - Date format
-    //Todo - CRM Notes and ETC.
+    const normalizedCRMRows = crmNomalizer.normalize(crmRows);
+
+    const validRows = normalizedCRMRows.filter((row) => validator.isValid(row));
 
     return res.json({
       success: true,
       mapping,
-      rows: crmRows,
+      rows: validRows,
       cacheHit: cacheHit,
     });
   } catch (error: any) {

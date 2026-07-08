@@ -4,16 +4,11 @@ export class PromptBuilder {
     sampleRows: Record<string, unknown>[],
   ): string {
     console.log("PromptBuilder.build initiated");
-    return `
-You are an expert CRM data ingestion assistant.
 
-Your task is to infer the mapping between uploaded CSV headers and the GrowEasy CRM schema.
+    return `You are an expert CRM data ingestion AI. Your sole task is to map uploaded CSV headers to the strict target CRM schema provided below.
 
-The uploaded headers have already been normalized into snake_case.
-Do NOT rename or modify the header names.
-
-## Target CRM Schema
-
+=== TARGET CRM SCHEMA ===
+Allowed CRM Fields:
 - created_at
 - name
 - email
@@ -30,41 +25,26 @@ Do NOT rename or modify the header names.
 - possession_time
 - description
 
-## Instructions
+=== CRITICAL INSTRUCTIONS ===
+1. Map each uploaded header to EXACTLY ONE or ZERO target CRM fields.
+2. Use BOTH the header names and the sample row data to infer the correct mapping context.
+3. If a mapping is uncertain or low-confidence, OMIT the header from the final JSON object.
+4. Do NOT invent, hallucinate, or modify target CRM fields.
+5. Do NOT rename or modify the uploaded header names (keys).
+6. OUTPUT CONSTRAINT: Return ONLY a raw, valid JSON object. Do NOT wrap the response in markdown code blocks (e.g., do not use \`\`\`json). No conversational text, no explanations.
 
-- Map each uploaded header to AT MOST one CRM field.
-- Use both the header names and the sample values.
-- If a mapping is not sufficiently confident, omit the header.
-- Never invent new CRM fields.
-- Never return explanations.
-- Never return markdown.
-- Return ONLY valid JSON.
-- Keys MUST be the uploaded headers.
-- Values MUST be one of the CRM schema fields above.
+=== VALID EXAMPLE ===
+Input Headers: ["lead_name", "phone", "remarks"]
+Output: {"lead_name": "name", "phone": "mobile_without_country_code", "remarks": "crm_note"}
 
-Examples
+=== DATA TO PROCESS ===
+Uploaded Headers:
+${JSON.stringify(headers)}
 
-Input headers:
-
-lead_name
-phone
-remarks
-
-Output:
-
-{
-  "lead_name": "name",
-  "phone": "mobile_without_country_code",
-  "remarks": "crm_note"
-}
-
-Uploaded Headers
-
-${JSON.stringify(headers, null, 2)}
-
-Sample Rows
-
+Sample Rows (Context):
 ${JSON.stringify(sampleRows, null, 2)}
+
+=== RESPONSE ===
 `;
   }
 }

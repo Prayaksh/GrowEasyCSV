@@ -21,6 +21,9 @@ export class CacheService {
     await redis.set(key, JSON.stringify(mapping), {
       EX: 60 * 60 * 24 * 30, // 30 days
     });
+
+    const verify = await redis.get(key);
+    console.log("Verify:", verify);
   }
 
   async has(key: string): Promise<boolean> {
