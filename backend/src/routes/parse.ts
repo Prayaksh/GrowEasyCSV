@@ -49,8 +49,6 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     return res.json({
       success: true,
-      raw: rows,
-      normalized: normalizedRows,
     });
   } catch (error: any) {
     return res.status(400).json({

@@ -18,9 +18,11 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.2.0",
+    "ai": "^7.0.17",
     "cors": "^2.8.6",
     "crypto": "^1.0.1",
     "csv-parse": "^7.0.1",
@@ -28,6 +30,7 @@
     "express": "^5.2.1",
     "multer": "^2.2.0",
     "redis": "^6.1.0",
-    "tsx": "^4.23.0"
+    "tsx": "^4.23.0",
+    "zod": "^4.4.3"
   }
 }

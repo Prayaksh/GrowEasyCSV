@@ -1,13 +1,9 @@
-import { HeaderMapping } from "../../types/types.js";
+import { AIFactory } from "./ai.factory.js";
 
 export class AIService {
-  async inferMapping(rows: Record<string, unknown>[]): Promise<HeaderMapping> {
-    // Build prompt
+  private provider = AIFactory.create();
 
-    // Send to Gemini/OpenAI
-
-    // Parse JSON
-
-    return mapping;
+  async inferMapping(headers: any, rows: any) {
+    return this.provider.inferMapping(headers, rows);
   }
 }
