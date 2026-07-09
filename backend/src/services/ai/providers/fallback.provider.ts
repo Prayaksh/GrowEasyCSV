@@ -10,7 +10,6 @@ const openrouter = createOpenRouter({
   apiKey: aiConfig.apiKey,
 });
 
-const model = openrouter.languageModel(aiConfig.model || "openrouter/free");
 const CRMFieldSchema = z.enum([
   "created_at",
   "name",
@@ -39,27 +38,21 @@ const HeaderMappingArraySchema = z.object({
 });
 
 export class FallbackProvider implements AIProvider {
+  constructor(
+    private readonly model = openrouter.languageModel(
+      aiConfig.model || "openrouter/free",
+    ),
+  ) {}
+
   async inferMapping(
     headers: string[],
     rows: Record<string, unknown>[],
   ): Promise<Record<string, string>> {
-    console.log("FallbackProvider.inferMapping initated");
     const prompt = PromptBuilder.build(headers, rows);
 
     try {
-      console.log({
-        model,
-        prompt,
-        output: Output.object({
-          schema: HeaderMappingArraySchema,
-        }),
-        temperature: aiConfig.temperature,
-        maxRetries: aiConfig.maxRetries,
-        maxOutputTokens: aiConfig.maxTokens,
-        abortSignal: AbortSignal.timeout(aiConfig.timeoutMs),
-      });
       const { output } = await generateText({
-        model,
+        model: this.model,
         prompt,
         output: Output.object({
           schema: HeaderMappingArraySchema,
@@ -73,16 +66,11 @@ export class FallbackProvider implements AIProvider {
       if (output.mappings.length === 0) {
         throw new Error("AI returned an empty mapping.");
       }
-      console.log("Generated Text", output);
 
-      const resultRecord: Record<string, string> = {};
-      for (const item of output.mappings) {
-        resultRecord[item.csvHeader] = item.crmField;
-      }
-
-      return resultRecord;
+      return Object.fromEntries(
+        output.mappings.map(({ csvHeader, crmField }) => [csvHeader, crmField]),
+      );
     } catch (error) {
-      console.log("Error while generating text ", error);
       if (error instanceof Error) {
         throw new Error(`Failed to infer header mapping: ${error.message}`);
       }

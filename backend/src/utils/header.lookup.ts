@@ -1,4 +1,4 @@
-import { HEADER_ALIASES } from "../ constants/header.js";
+import { HEADER_ALIASES } from "../constants/header.js";
 import { HeaderNormalizer } from "../normalizers/header.normalizer.js";
 
 export class HeaderLookup {

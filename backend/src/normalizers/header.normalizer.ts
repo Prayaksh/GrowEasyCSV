@@ -1,4 +1,4 @@
-import { HEADER_ALIASES } from "../ constants/header.js";
+import { HEADER_ALIASES } from "../constants/header.js";
 
 export class HeaderNormalizer {
   private aliasMap: Map<string, string>;

@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "npx esbuild src/server.ts --bundle --platform=node --outfile=dist/server.js",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -14,8 +18,10 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^26.1.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "esbuild": "0.28.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@openrouter/ai-sdk-provider": "^3.0.0",
