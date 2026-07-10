@@ -1,6 +1,6 @@
 import { ParseResponse } from "@/types";
 
-const API = "http://localhost:8000";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export async function parseCSV(file: File): Promise<ParseResponse> {
   const formData = new FormData();
@@ -13,7 +13,9 @@ export async function parseCSV(file: File): Promise<ParseResponse> {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to parse CSV");
+    const message = await response.text();
+
+    throw new Error(message || "Failed to parse CSV.");
   }
 
   return response.json();

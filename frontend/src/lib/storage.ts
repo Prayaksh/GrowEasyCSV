@@ -1,30 +1,61 @@
-import { PreviewState } from "@/types";
+"use client";
 
-const STORAGE_KEY = "csv-preview";
+import { create } from "zustand";
+import { ParseResponse } from "@/types";
 
-export function savePreview(data: PreviewState) {
-  if (typeof window === "undefined") return;
-
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+export interface UploadFileInfo {
+  name: string;
+  size: number;
+  type: string;
 }
 
-export function getPreview(): PreviewState | null {
-  if (typeof window === "undefined") return null;
-
-  const raw = sessionStorage.getItem(STORAGE_KEY);
-
-  if (!raw) return null;
-
-  try {
-    return JSON.parse(raw) as PreviewState;
-  } catch {
-    sessionStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
+export interface LocalPreview {
+  headers: string[];
+  rows: Record<string, unknown>[];
 }
 
-export function clearPreview() {
-  if (typeof window === "undefined") return;
+interface UploadStore {
+  file: File | null;
 
-  sessionStorage.removeItem(STORAGE_KEY);
+  fileInfo: UploadFileInfo | null;
+
+  preview: LocalPreview | null;
+
+  result: ParseResponse | null;
+
+  setPreview: (
+    file: File,
+    fileInfo: UploadFileInfo,
+    preview: LocalPreview,
+  ) => void;
+
+  setResult: (result: ParseResponse) => void;
+
+  clear: () => void;
 }
+
+const initialState = {
+  file: null,
+  fileInfo: null,
+  preview: null,
+  result: null,
+};
+
+export const useUploadStore = create<UploadStore>((set) => ({
+  ...initialState,
+
+  setPreview: (file, fileInfo, preview) =>
+    set({
+      file,
+      fileInfo,
+      preview,
+      result: null,
+    }),
+
+  setResult: (result) =>
+    set({
+      result,
+    }),
+
+  clear: () => set(initialState),
+}));

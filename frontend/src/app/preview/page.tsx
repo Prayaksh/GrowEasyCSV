@@ -3,42 +3,82 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { getPreview } from "@/lib/storage";
-import { PreviewState } from "@/types";
+import { parseCSV } from "@/services/api";
+import { useUploadStore } from "@/lib/storage";
 
 import FileDetails from "@/components/FileDetails";
-import SummaryCard from "@/components/SummaryCard";
+import ParseButton from "@/components/ParseButton";
 import PreviewTable from "@/components/PreviewTable";
+
+import ResultTable from "@/components/ResultTable";
+import SummaryCard from "@/components/SummaryCard";
 
 export default function PreviewPage() {
   const router = useRouter();
 
-  const [preview, setPreview] = useState<PreviewState | null>(null);
+  const { file, fileInfo, preview, result, setResult } = useUploadStore();
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const data = getPreview();
-
-    if (!data) {
+    if (!file || !fileInfo || !preview) {
       router.replace("/upload");
-      return;
     }
+  }, [file, fileInfo, preview, router]);
 
-    setPreview(data);
-  }, [router]);
+  async function handleParse() {
+    if (!file) return;
 
-  if (!preview) {
-    return <div>Loading preview...</div>;
+    try {
+      setLoading(true);
+
+      const response = await parseCSV(file);
+
+      setResult(response);
+    } catch (error) {
+      console.error(error);
+
+      alert(error instanceof Error ? error.message : "Failed to parse file.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!fileInfo || !preview) {
+    return null;
   }
 
   return (
-    <main className="p-8 space-y-8">
-      <h1 className="text-2xl font-bold">CSV Preview</h1>
+    <main className="mx-auto max-w-7xl space-y-8 p-8">
+      <div>
+        <h1 className="text-3xl font-bold">Preview Upload</h1>
 
-      <FileDetails file={preview.file} />
+        <p className="mt-2 text-gray-500">
+          Review your uploaded file before parsing it.
+        </p>
+      </div>
 
-      <SummaryCard response={preview.response} />
+      <FileDetails
+        file={fileInfo}
+        rows={preview.rows.length}
+        columns={preview.headers.length}
+      />
 
-      <PreviewTable rows={preview.response.rows} />
+      {!result ? (
+        <>
+          <PreviewTable preview={preview} />
+
+          <div className="flex justify-end">
+            <ParseButton loading={loading} onClick={handleParse} />
+          </div>
+        </>
+      ) : (
+        <>
+          <SummaryCard result={result} />
+
+          <ResultTable result={result} />
+        </>
+      )}
     </main>
   );
 }

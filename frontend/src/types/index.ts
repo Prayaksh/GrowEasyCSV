@@ -1,18 +1,19 @@
-export interface PreviewResponse {
-  uploadId: string;
-  file: {
-    name: string;
-    rows: number;
-    columns: number;
-    size: number;
-  };
-  columns: string[];
-  preview: Record<string, any>[];
+export interface FileInfo {
+  name: string;
+  size: number;
+  type: string;
+}
+
+export interface LocalPreview {
+  headers: string[];
+  rows: Record<string, unknown>[];
+}
+
+export interface ParseResponse {
+  success: boolean;
   mapping: Record<string, string>;
-  summary: {
-    matched: number;
-    unmatched: number;
-  };
+  rows: Record<string, unknown>[];
+  cacheHit: boolean;
 }
 
 export interface ImportResponse {
@@ -24,20 +25,4 @@ export interface ImportResponse {
     row: number;
     message: string;
   }[];
-}
-export interface ParseResponse {
-  success: boolean;
-  mapping: Record<string, string>;
-  rows: Record<string, any>[];
-  cacheHit: boolean;
-}
-
-export interface PreviewState {
-  file: {
-    name: string;
-    size: number;
-    type: string;
-  };
-
-  response: ParseResponse;
 }

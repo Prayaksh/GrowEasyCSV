@@ -1,29 +1,42 @@
+import { FileInfo } from "@/types";
+
 interface FileDetailsProps {
-  file: {
-    name: string;
-    size: number;
-    type: string;
-  };
+  file: FileInfo;
+  rows: number;
+  columns: number;
 }
 
-export default function FileDetails({ file }: FileDetailsProps) {
+export default function FileDetails({ file, rows, columns }: FileDetailsProps) {
   return (
-    <div className="border rounded p-4">
-      <h2 className="text-lg font-semibold mb-4">File Details</h2>
+    <div className="rounded-lg border p-6">
+      <h2 className="mb-4 text-lg font-semibold">File Details</h2>
 
-      <div className="space-y-2">
-        <p>
-          <strong>Name:</strong> {file.name}
-        </p>
+      <dl className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <dt className="text-sm text-gray-500">Filename</dt>
+          <dd className="font-medium">{file.name}</dd>
+        </div>
 
-        <p>
-          <strong>Size:</strong> {(file.size / 1024).toFixed(2)} KB
-        </p>
+        <div>
+          <dt className="text-sm text-gray-500">File Size</dt>
+          <dd className="font-medium">{(file.size / 1024).toFixed(2)} KB</dd>
+        </div>
 
-        <p>
-          <strong>Type:</strong> {file.type || "Unknown"}
-        </p>
-      </div>
+        <div>
+          <dt className="text-sm text-gray-500">File Type</dt>
+          <dd className="font-medium">{file.type || "Unknown"}</dd>
+        </div>
+
+        <div>
+          <dt className="text-sm text-gray-500">Columns</dt>
+          <dd className="font-medium">{columns}</dd>
+        </div>
+
+        <div>
+          <dt className="text-sm text-gray-500">Preview Rows</dt>
+          <dd className="font-medium">{rows}</dd>
+        </div>
+      </dl>
     </div>
   );
 }

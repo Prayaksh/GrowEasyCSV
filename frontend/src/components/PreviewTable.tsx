@@ -1,33 +1,42 @@
+import { LocalPreview } from "@/types";
+
 interface PreviewTableProps {
-  rows: Record<string, any>[];
+  preview: LocalPreview;
 }
 
-export default function PreviewTable({ rows }: PreviewTableProps) {
+export default function PreviewTable({ preview }: PreviewTableProps) {
+  const { headers, rows } = preview;
+
   if (rows.length === 0) {
-    return <div className="border rounded p-4">No preview available.</div>;
+    return (
+      <div className="rounded-lg border p-4 text-center text-gray-500">
+        No preview available.
+      </div>
+    );
   }
 
-  const columns = Object.keys(rows[0]);
-
   return (
-    <div className="border rounded p-4 overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border">
       <table className="min-w-full border-collapse">
-        <thead>
+        <thead className="bg-gray-50">
           <tr>
-            {columns.map((column) => (
-              <th key={column} className="border px-3 py-2 text-left">
-                {column}
+            {headers.map((header) => (
+              <th
+                key={header}
+                className="border-b px-4 py-3 text-left text-sm font-medium"
+              >
+                {header}
               </th>
             ))}
           </tr>
         </thead>
 
         <tbody>
-          {rows.map((row, index) => (
-            <tr key={index}>
-              {columns.map((column) => (
-                <td key={column} className="border px-3 py-2">
-                  {String(row[column] ?? "")}
+          {rows.map((row, rowIndex) => (
+            <tr key={rowIndex} className="hover:bg-gray-50">
+              {headers.map((header) => (
+                <td key={header} className="border-b px-4 py-2 text-sm">
+                  {String(row[header] ?? "")}
                 </td>
               ))}
             </tr>

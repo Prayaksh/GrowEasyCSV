@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { parseCSV } from "@/services/api";
-import { savePreview } from "@/lib/storage";
+import { readFilePreview } from "@/services/file";
+import { useUploadStore } from "@/lib/storage";
 
 export default function UploadBox() {
   const router = useRouter();
+
+  const setPreview = useUploadStore((state) => state.setPreview);
 
   const [loading, setLoading] = useState(false);
 
@@ -19,31 +21,45 @@ export default function UploadBox() {
     try {
       setLoading(true);
 
-      const response = await parseCSV(file);
+      const preview = await readFilePreview(file);
 
-      savePreview({
-        file: {
+      setPreview(
+        file,
+        {
           name: file.name,
           size: file.size,
           type: file.type,
         },
-        response,
-      });
+        preview,
+      );
 
       router.push("/preview");
     } catch (error) {
       console.error(error);
-      alert("Failed to parse file.");
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to read the selected file.",
+      );
     } finally {
       setLoading(false);
+
+      // Allow selecting the same file again
+      event.target.value = "";
     }
   }
 
   return (
-    <div className="border rounded p-6">
-      <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileChange} />
+    <div className="border rounded-lg p-6">
+      <input
+        type="file"
+        accept=".csv,.xlsx,.xls"
+        onChange={handleFileChange}
+        disabled={loading}
+      />
 
-      {loading && <p>Uploading...</p>}
+      {loading && <p className="mt-4 text-sm text-gray-500">Reading file...</p>}
     </div>
   );
 }

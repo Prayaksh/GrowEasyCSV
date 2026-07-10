@@ -1,37 +1,40 @@
 import { ParseResponse } from "@/types";
 
 interface SummaryCardProps {
-  response: ParseResponse;
+  result: ParseResponse;
 }
 
-export default function SummaryCard({ response }: SummaryCardProps) {
-  const rows = response.rows.length;
-
-  const columns = rows > 0 ? Object.keys(response.rows[0]).length : 0;
-
-  const mappedFields = Object.keys(response.mapping).length;
+export default function SummaryCard({ result }: SummaryCardProps) {
+  const totalRows = result.rows.length;
+  const mappedFields = Object.keys(result.mapping).length;
 
   return (
-    <div className="border rounded p-4">
-      <h2 className="text-lg font-semibold mb-4">Summary</h2>
+    <div className="rounded-lg border p-6">
+      <h2 className="mb-4 text-lg font-semibold">Parse Summary</h2>
 
-      <div className="space-y-2">
-        <p>
-          <strong>Total Rows:</strong> {rows}
-        </p>
+      <dl className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <dt className="text-sm text-gray-500">Processed Rows</dt>
+          <dd className="font-medium">{totalRows}</dd>
+        </div>
 
-        <p>
-          <strong>Total Columns:</strong> {columns}
-        </p>
+        <div>
+          <dt className="text-sm text-gray-500">Mapped Fields</dt>
+          <dd className="font-medium">{mappedFields}</dd>
+        </div>
 
-        <p>
-          <strong>Mapped Fields:</strong> {mappedFields}
-        </p>
+        <div>
+          <dt className="text-sm text-gray-500">Cache</dt>
+          <dd className="font-medium">{result.cacheHit ? "Hit" : "Miss"}</dd>
+        </div>
 
-        <p>
-          <strong>Cache Hit:</strong> {response.cacheHit ? "Yes" : "No"}
-        </p>
-      </div>
+        <div>
+          <dt className="text-sm text-gray-500">Status</dt>
+          <dd className="font-medium">
+            {result.success ? "Success" : "Failed"}
+          </dd>
+        </div>
+      </dl>
     </div>
   );
 }
