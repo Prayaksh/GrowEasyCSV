@@ -11,7 +11,7 @@ export const HEADER_ALIASES: Record<string, string[]> = {
 
   email: ["email", "email address", "mail", "primary email"],
 
-  phone: [
+  mobile_without_country_code: [
     "phone",
     "phone number",
     "mobile",

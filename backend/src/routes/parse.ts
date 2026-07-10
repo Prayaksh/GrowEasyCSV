@@ -40,7 +40,9 @@ router.post("/", upload.single("file"), async (req, res) => {
     const parser = ParserFactory.create(req.file.originalname);
 
     const rows = await parser.parse(req.file.buffer);
+    console.log("Raw rows: ", rows);
     const normalizedRows = normalizerService.normalize(rows);
+    console.log("Normalized Rows: ", normalizedRows);
 
     if (normalizedRows.length === 0) {
       console.log("Failed during normalization");
@@ -51,8 +53,11 @@ router.post("/", upload.single("file"), async (req, res) => {
     }
 
     const headers = Object.keys(normalizedRows[0]);
+    console.log("headers: ", headers);
 
     const { mapping: directMapping, unmatched } = headerMatcher.match(headers);
+    console.log("Mapping: ", directMapping);
+    console.log("Unmatched:", unmatched);
 
     let aiMapping: Record<string, string> = {};
     let cacheHit = false;
@@ -63,6 +68,8 @@ router.post("/", upload.single("file"), async (req, res) => {
       console.log("GET:", key);
 
       const cached = await cacheService.get(key);
+
+      console.log("Cached: ", cached);
 
       if (cached) {
         aiMapping = cached;
@@ -90,11 +97,22 @@ router.post("/", upload.single("file"), async (req, res) => {
       ...aiMapping,
     };
 
+    console.log("Mapping: ", mapping);
+
     const crmRows = mappingService.apply(normalizedRows, mapping!);
+
+    console.log("CRMRows: ", crmRows);
 
     const normalizedCRMRows = crmNomalizer.normalize(crmRows);
 
     const validRows = normalizedCRMRows.filter((row) => validator.isValid(row));
+
+    console.log("Result: ", {
+      success: true,
+      mapping,
+      rows: validRows,
+      cacheHit: cacheHit,
+    });
 
     return res.json({
       success: true,

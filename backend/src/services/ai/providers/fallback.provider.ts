@@ -63,19 +63,35 @@ export class FallbackProvider implements AIProvider {
         abortSignal: AbortSignal.timeout(aiConfig.timeoutMs),
       });
 
-      if (output.mappings.length === 0) {
-        throw new Error("AI returned an empty mapping.");
+      console.dir("Respone:", output);
+
+      if (!output || !Array.isArray(output.mappings)) {
+        console.warn("AI returned no mappings.");
+        return {};
       }
 
-      return Object.fromEntries(
-        output.mappings.map(({ csvHeader, crmField }) => [csvHeader, crmField]),
+      const mapping = Object.fromEntries(
+        output.mappings
+          .filter(
+            (m) =>
+              typeof m.csvHeader === "string" &&
+              CRMFieldSchema.safeParse(m.crmField).success,
+          )
+          .map(({ csvHeader, crmField }) => [csvHeader, crmField]),
       );
+
+      console.log("Validated Mapping:");
+      console.dir(mapping, { depth: null });
+
+      return mapping;
     } catch (error) {
+      console.warn("Structured generation failed.");
+
       if (error instanceof Error) {
-        throw new Error(`Failed to infer header mapping: ${error.message}`);
+        console.warn(error.message);
       }
 
-      throw new Error("Failed to infer header mapping.");
+      return {};
     }
   }
 }
