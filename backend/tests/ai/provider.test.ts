@@ -2,9 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("ai", () => ({
   generateText: vi.fn(),
-  Output: {
-    object: vi.fn(() => ({})),
-  },
 }));
 
 import { generateText } from "ai";
@@ -17,20 +14,22 @@ describe("FallbackProvider", () => {
     vi.clearAllMocks();
   });
 
-  it("returns mapping", async () => {
+  it("returns mapping from valid JSON response", async () => {
     vi.mocked(generateText).mockResolvedValue({
-      output: {
-        mappings: [
-          {
-            csvHeader: "Name",
-            crmField: "name",
-          },
-          {
-            csvHeader: "Email",
-            crmField: "email",
-          },
-        ],
-      },
+      text: `
+{
+  "mappings": [
+    {
+      "csvHeader": "Name",
+      "crmField": "name"
+    },
+    {
+      "csvHeader": "Email",
+      "crmField": "email"
+    }
+  ]
+}
+`,
     } as any);
 
     const provider = new FallbackProvider(mockModel);
@@ -43,40 +42,104 @@ describe("FallbackProvider", () => {
     });
   });
 
-  it("throws on empty mapping", async () => {
+  it("parses markdown wrapped JSON", async () => {
     vi.mocked(generateText).mockResolvedValue({
-      output: {
-        mappings: [],
-      },
+      text: `
+Here's the mapping.
+
+\`\`\`json
+{
+  "mappings": [
+    {
+      "csvHeader": "Email",
+      "crmField": "email"
+    }
+  ]
+}
+\`\`\`
+`,
     } as any);
 
     const provider = new FallbackProvider(mockModel);
 
-    await expect(provider.inferMapping([], [])).rejects.toThrow(
-      "Failed to infer header mapping: AI returned an empty mapping.",
-    );
+    const result = await provider.inferMapping(["Email"], []);
+
+    expect(result).toEqual({
+      Email: "email",
+    });
   });
 
-  it("wraps SDK errors", async () => {
+  it("returns empty object when JSON cannot be extracted", async () => {
+    vi.mocked(generateText).mockResolvedValue({
+      text: "Sorry, I could not determine the mapping.",
+    } as any);
+
+    const provider = new FallbackProvider(mockModel);
+
+    const result = await provider.inferMapping([], []);
+
+    expect(result).toEqual({});
+  });
+
+  it("returns empty object for invalid schema", async () => {
+    vi.mocked(generateText).mockResolvedValue({
+      text: `
+{
+  "mappings": [
+    {
+      "csvHeader": "Email",
+      "crmField": "not_a_real_field"
+    }
+  ]
+}
+`,
+    } as any);
+
+    const provider = new FallbackProvider(mockModel);
+
+    const result = await provider.inferMapping([], []);
+
+    expect(result).toEqual({});
+  });
+
+  it("returns empty object when mappings array is empty", async () => {
+    vi.mocked(generateText).mockResolvedValue({
+      text: `
+{
+  "mappings": []
+}
+`,
+    } as any);
+
+    const provider = new FallbackProvider(mockModel);
+
+    const result = await provider.inferMapping([], []);
+
+    expect(result).toEqual({});
+  });
+
+  it("returns empty object when generateText throws", async () => {
     vi.mocked(generateText).mockRejectedValue(new Error("Timeout"));
 
     const provider = new FallbackProvider(mockModel);
 
-    await expect(provider.inferMapping([], [])).rejects.toThrow(
-      "Failed to infer header mapping: Timeout",
-    );
+    const result = await provider.inferMapping([], []);
+
+    expect(result).toEqual({});
   });
 
   it("calls generateText exactly once", async () => {
     vi.mocked(generateText).mockResolvedValue({
-      output: {
-        mappings: [
-          {
-            csvHeader: "Email",
-            crmField: "email",
-          },
-        ],
-      },
+      text: `
+{
+  "mappings": [
+    {
+      "csvHeader": "Email",
+      "crmField": "email"
+    }
+  ]
+}
+`,
     } as any);
 
     const provider = new FallbackProvider(mockModel);
@@ -88,14 +151,16 @@ describe("FallbackProvider", () => {
 
   it("passes the injected model", async () => {
     vi.mocked(generateText).mockResolvedValue({
-      output: {
-        mappings: [
-          {
-            csvHeader: "Email",
-            crmField: "email",
-          },
-        ],
-      },
+      text: `
+{
+  "mappings": [
+    {
+      "csvHeader": "Email",
+      "crmField": "email"
+    }
+  ]
+}
+`,
     } as any);
 
     const provider = new FallbackProvider(mockModel);
@@ -105,6 +170,26 @@ describe("FallbackProvider", () => {
     expect(generateText).toHaveBeenCalledWith(
       expect.objectContaining({
         model: mockModel,
+      }),
+    );
+  });
+
+  it("passes a prompt to generateText", async () => {
+    vi.mocked(generateText).mockResolvedValue({
+      text: `
+{
+  "mappings": []
+}
+`,
+    } as any);
+
+    const provider = new FallbackProvider(mockModel);
+
+    await provider.inferMapping([], []);
+
+    expect(generateText).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: expect.any(String),
       }),
     );
   });
