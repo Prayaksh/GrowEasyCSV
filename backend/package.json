@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "build": "npx esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js",
-    "build:tsc": "tsc",
+    "build": "tsc",
+    "build:es": "npx esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js",
     "start": "node dist/server.js",
     "test": "vitest",
     "test:run": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "build:image": "docker build -t groweasy-backend ."
   },
   "keywords": [],
   "author": "",
