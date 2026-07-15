@@ -1,7 +1,7 @@
-import { AnthropicProvider } from "./providers/anthropic.provider.js";
+// import { AnthropicProvider } from "./providers/anthropic.provider.js";
 import { FallbackProvider } from "./providers/fallback.provider.js";
-import { GeminiProvider } from "./providers/gemini.provider.js";
-import { OpenAIProvider } from "./providers/openai.provider.js";
+// import { GeminiProvider } from "./providers/gemini.provider.js";
+// import { OpenAIProvider } from "./providers/openai.provider.js";
 import { AIProvider } from "./providers/provider.interface.js";
 import { aiConfig } from "./ai.config.js";
 

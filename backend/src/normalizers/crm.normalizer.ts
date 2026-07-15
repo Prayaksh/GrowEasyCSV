@@ -73,21 +73,18 @@ export class CRMRecordNormalizer implements INormalizer<CRMRecord> {
   }
 
   private normalizePhones(row: CRMRecord) {
-    if (!row.mobile_without_country_code) {
+    if (row.mobile_without_country_code == null) {
       return;
     }
-
-    const phones = row.mobile_without_country_code
+    const phones = String(row.mobile_without_country_code)
       .split(/[;,/]/)
       .map((x) => x.trim())
       .filter(Boolean);
-
     if (phones.length <= 1) {
+      row.mobile_without_country_code = phones[0] ?? "";
       return;
     }
-
     row.mobile_without_country_code = phones[0];
-
     row.crm_note = this.appendNote(
       row.crm_note,
       `Additional Phones: ${phones.slice(1).join(", ")}`,
